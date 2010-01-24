@@ -127,7 +127,7 @@ new_env = Sanitize::Environment.new
 opts = GetoptLong.new( 
   ['--system', '-s', GetoptLong::REQUIRED_ARGUMENT],
   ['--appendpath', '-a', GetoptLong::REQUIRED_ARGUMENT],
-  ['--prependpath', '-p', GetoptLong::REQUIRED_ARGUMENT],
+  ['--prependpath', '-p', GetoptLong::REQUIRED_ARGUMENT]
 )
 
 opts.each do | opt, arg |
@@ -150,9 +150,13 @@ opts.each do | opt, arg |
       new_env.os.path = tmp_path
     end
 
-  elsif opt == "--appendpath"
+  elsif opt == '--appendpath'
     new_env.os.path << arg
+
+  elsif opt == '--prependpath'
+    new_env.os.path.unshift arg
   end
+
 end
 
 
