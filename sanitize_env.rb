@@ -8,14 +8,6 @@
 # sanitize is a ruby script for setting up an environment with standardized 
 # values.
 #
-# Current options:
-#
-# --system, -s
-#   accepted params: solaris, linux
-# --prependpath, -p
-# --appendpath, -a
-# --profile
-#   accepted params: ghc
 ################################################################################
 
 ################################################################################
@@ -195,7 +187,7 @@ options = Hash.new
 opt_parser = OptionParser.new do | opts |
   opts.banner ="Usage #{$0} [options]"
 
-  opts.on('-s', '--system=val', 'Specify target operating system') do | os |
+  opts.on('-s', '--system=val', [:solaris, :linux], 'Specify target operating system') do | os |
     options[:system] = os
   end
 
@@ -209,7 +201,7 @@ opt_parser = OptionParser.new do | opts |
     options[:apath] << path
   end
 
-  opts.on('-p', '--profile=val', 'Load a package profile') do | profile |
+  opts.on('-p', '--profile=val', [:ghc], 'Load a package profile') do | profile |
     options[:profile] ||= Array.new
     options[:profile] << profile
   end
@@ -233,8 +225,8 @@ opt_parser.parse!
 new_env = Sanitize::Environment.new
 
 new_env.system = case options[:system]
-  when 'solaris' then Sanitize::OperatingSystem::Solaris.new
-  when 'linux' then Sanitize::OperatingSystem::Linux.new
+  when :solaris then Sanitize::OperatingSystem::Solaris.new
+  when :linux then Sanitize::OperatingSystem::Linux.new
   else
     if ! options[:system].nil?
       $stderr.puts "Error: Unsupported system \"#{options[:system]}\""
@@ -254,7 +246,7 @@ end
 if ! options[:profile].nil? && options[:profile].length > 0
   options[:profile].each do | profile |
     new_env.system.profiles << case profile
-      when 'ghc' then Sanitize::Profile::Ghc.new
+      when :ghc then Sanitize::Profile::Ghc.new
     end
   end
 end
