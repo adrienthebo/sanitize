@@ -277,17 +277,14 @@ end
 
 new_env.shell = case options[:shell]
   when 'bash' then Sanitize::Shell::Bash.new
-  when 'zsh'
-    puts "Support for zsh to come."
-    Sanitize::Shell::Base.new
+  when 'zsh' then Sanitize::Shell::Zsh.new
   else nil
 end
 
 new_env.shell ||= case ENV['SHELL']
   when '/bin/bash' then Sanitize::Shell::Bash.new
-  when '/bin/zsh'
-    puts "Support for zsh to come."
-    Sanitize::Shell::Base.new
+  when '/bin/zsh' then Sanitize::Shell::Zsh.new
+  else Sanitize::Shell::Base.new
 end
 
 # Set all environment variables and execute shell
