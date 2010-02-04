@@ -147,6 +147,13 @@ module Sanitize
 	exec "#{ENV['SHELL']} --noprofile --norc"
       end
     end
+  
+    class Zsh < Base
+      def run
+	puts "Entering shell \"#{ENV['SHELL']}\" with sanitized environment."
+	exec "#{ENV['SHELL']} -f"
+      end
+    end
   end
 
   ##############################################################################
@@ -229,12 +236,12 @@ new_env.system = case options[:system]
   when 'solaris' then Sanitize::OperatingSystem::Solaris.new
   when 'linux' then Sanitize::OperatingSystem::Linux.new
   else
-    if defined? options[:system]
+    if ! options[:system].nil?
       $stderr.puts "Error: Unsupported system \"#{options[:system]}\""
       puts opt_parser
       exit 1
     else
-      $stderr.puts "Error: No operating system supplied."
+      $stderr.puts "Error: --system switch must be specified."
       puts opt_parser
       exit 1
     end
