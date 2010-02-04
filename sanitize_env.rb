@@ -47,7 +47,7 @@ module Sanitize
 
       def setpath
 	if @path.length > 0
-	  ENV['PATH'] = @path.join(":")
+	  ENV['PATH'] = @path.join(':')
 	end
       end
 
@@ -153,17 +153,17 @@ module Sanitize
   # Specific instance of an environment.
   ##############################################################################
   class Environment
-    attr_accessor :os
+    attr_accessor :system
     attr_accessor :shell
 
     def initialize
-      @os = Sanitize::OperatingSystem::Base.new
+      @system = Sanitize::OperatingSystem::Base.new
       @shell = Sanitize::Shell::Base.new
     end
 
     def execute
       ENV['SANITIZED'] = '1'
-      @os.setenv
+      @system.setenv
       @shell.run
     end
   end
@@ -171,77 +171,116 @@ end
 
 
 ################################################################################
-# help documentation
-################################################################################
-
-# --system, -s
-#   accepted params: solaris, linux
-# --prependpath, -p
-# --appendpath, -a
-# --profile
-#   accepted params: ghc
-
-################################################################################
 # Begin main body of execution
 ################################################################################
 
 require 'optparse'
-require 'getoptlong'
 
+# Make sure sanitizing hasn't occurred.
+
+if ENV['SANITIZED'].to_i == 1
+  $stderr.puts "Already in a sanitized environment. Exiting."
+  exit 1
+end
+
+options = Hash.new
+
+opt_parser = OptionParser.new do | opts |
+  opts.banner ="Usage #{$0} [options]"
+
+  opts.on('-s', '--system=val', 'Specify target operating system') do | os |
+    options[:system] = os
+  end
+
+  opts.on('--prependpath=val', 'Prepend a string to path') do | path |
+    options[:ppath] ||= Array.new
+    options[:ppath] << path
+  end
+
+  opts.on('--appendpath=val', 'Append a string to path') do | path |
+    options[:apath] ||= Array.new
+    options[:apath] << path
+  end
+
+  opts.on('-p', '--profile=val', 'Load a package profile') do | profile |
+    options[:profile] ||= Array.new
+    puts profile
+    options[:profile] << profile
+  end
+
+  opts.on('--shell', 'Specify a shell to load') do | profile |
+    puts "TODO --shell"
+  end
+
+  opts.on('-h', '--help', 'Display this help screen') do
+    puts opts
+    exit
+  end
+end
+
+opt_parser.parse!
+
+################################################################################
+# Assemble environment
+################################################################################
 new_env = Sanitize::Environment.new
 
-opts = GetoptLong.new( 
-  ['--system', '-s', GetoptLong::REQUIRED_ARGUMENT],
-  ['--appendpath', GetoptLong::REQUIRED_ARGUMENT],
-  ['--prependpath', GetoptLong::REQUIRED_ARGUMENT],
-  ['--profile', '-p', GetoptLong::REQUIRED_ARGUMENT]
-)
-
-opts.each do | opt, arg |
-  # TODO remove debug statement
-  puts "DEBUG opt: #{opt}, arg: #{arg}"
-
-  # Set operating system specific env
-  if opt == "--system" 
-    tmp_path = new_env.os.path
-    tmp_profiles = new_env.os.profiles
-    new_env.os = case arg
-      when "solaris" then Sanitize::OperatingSystem::Solaris.new
-      when "linux" then Sanitize::OperatingSystem::Linux.new
-      else
-	puts "WARNING: Operating system #{arg} unsupported."
-	Sanitize::OperatingSystem::Base.new
+new_env.system = case options[:system]
+  when 'solaris' then Sanitize::OperatingSystem::Solaris.new
+  when 'linux' then Sanitize::OperatingSystem::Linux.new
+  else
+    if defined? options[:system]
+      $stderr.puts "Error: Unsupported system \"#{options[:system]}\""
+      puts opt_parser
+      exit 1
+    else
+      $stderr.puts "Error: No operating system supplied."
+      puts opt_parser
+      exit 1
     end
+end
 
-    # Transfer previously stored path and profiles to new OS, if it exists
-    if tmp_path.size > 0
-      new_env.os.path = tmp_path
-    end
-    if tmp_profiles.size > 0
-      new_env.os.profiles = tmp_profiles
-    end
+################################################################################
+# Load profiles
+################################################################################
 
-  elsif opt == '--appendpath'
-    new_env.os.path << arg
-
-  elsif opt == '--prependpath'
-    new_env.os.path.unshift arg
-
-  elsif opt == '--profile'
-    new_env.os.profiles << case arg
+if ! options[:profile].nil? && options[:profile].length > 0
+  options[:profile].each do | profile |
+    new_env.system.profiles << case profile
       when 'ghc' then Sanitize::Profile::Ghc.new
     end
   end
-
 end
 
+################################################################################
+# Path munging
+################################################################################
 
+if ! options[:ppath].nil? && options[:ppath].length > 0
+  new_env.system.path.unshift options[:ppath]
+end
+
+if ! options[:apath].nil? && options[:ppath].length > 0
+  new_env.system.path.push options[:apath]
+end
+
+################################################################################
 # Determine shell type
+################################################################################
 
-if ENV['SHELL'] == '/bin/bash'
-  new_env.shell = Sanitize::Shell::Bash.new
-elsif ENV['SHELL'] == '/bin/zsh'
-  puts "Support for zsh to come."
+new_env.shell = case options[:shell]
+  when 'bash' then Sanitize::Shell::Bash.new
+  when 'zsh'
+    puts "Support for zsh to come."
+    Sanitize::Shell::Base.new
+  else nil
+end
+
+new_env.shell ||= case ENV['SHELL']
+  when '/bin/bash' then Sanitize::Shell::Bash.new
+  when '/bin/zsh'
+    puts "Support for zsh to come."
+    Sanitize::Shell::Base.new
 end
 
 # Set all environment variables and execute shell
