@@ -2,3 +2,4 @@ TODO
 
 - Add support for SunswPro/Forte C
 - Autodetect operating system
+- Manpath sanitization
