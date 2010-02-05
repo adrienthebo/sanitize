@@ -205,12 +205,12 @@ opt_parser = OptionParser.new do | opts |
     options[:system] = os
   end
 
-  opts.on('--prependpath=val', 'Prepend a string to path') do | path |
+  opts.on('--prepend-path=val', 'Prepend a string to path') do | path |
     options[:ppath] ||= Array.new
     options[:ppath] << path
   end
 
-  opts.on('--appendpath=val', 'Append a string to path') do | path |
+  opts.on('--append-path=val', 'Append a string to path') do | path |
     options[:apath] ||= Array.new
     options[:apath] << path
   end
@@ -279,7 +279,7 @@ if ! options[:ppath].nil? && options[:ppath].length > 0
   new_env.system.path.unshift options[:ppath]
 end
 
-if ! options[:apath].nil? && options[:ppath].length > 0
+if ! options[:apath].nil? && options[:apath].length > 0
   new_env.system.path.push options[:apath]
 end
 
