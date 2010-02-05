@@ -114,8 +114,22 @@ module Sanitize
     # GHC profile
     ##############################################################################
     class Ghc < Base
+      def setenv_linux(os)
+	$stderr.puts 'No available profile for GHC on linux'
+      end
+
       def setenv_solaris(os)
 	os.path.unshift('/pkgs/gcc/gcc-4.1.0/bin', '/pkgs/ghc/current/bin')
+      end
+    end
+
+    class ForteC < Base
+      def setenv_linux(os)
+	$stderr.puts 'No available profile for Forte C on linux'
+      end
+
+      def setenv_solaris(os)
+	os.path.unshift('/opt/SUNWspro/bin')
       end
     end
   end
@@ -201,7 +215,7 @@ opt_parser = OptionParser.new do | opts |
     options[:apath] << path
   end
 
-  opts.on('-p', '--profile=val', [:ghc], 'Load a package profile') do | profile |
+  opts.on('-p', '--profile=val', [:ghc, :fortec], 'Load a package profile') do | profile |
     options[:profile] ||= Array.new
     options[:profile] << profile
   end
@@ -217,7 +231,12 @@ opt_parser = OptionParser.new do | opts |
   end
 end
 
-opt_parser.parse!
+begin
+  opt_parser.parse!
+rescue
+  $stderr.puts $!
+  exit 1
+end
 
 ################################################################################
 # Assemble environment
@@ -247,6 +266,7 @@ if ! options[:profile].nil? && options[:profile].length > 0
   options[:profile].each do | profile |
     new_env.system.profiles << case profile
       when :ghc then Sanitize::Profile::Ghc.new
+      when :fortec then Sanitize::Profile::ForteC.new
     end
   end
 end
@@ -278,6 +298,15 @@ new_env.shell = case ENV['SHELL']
   else Sanitize::Shell::Base.new
 end
 
-# Set all environment variables and execute shell
-new_env.execute
+# Spawn shell in child instance
+pid = Process.fork
+
+if pid.nil?
+  # Set all environment variables and execute shell
+  new_env.execute
+else
+  Process.waitpid(pid, 0)
+  puts 'Exiting sanitized environment.'
+end
+
 
