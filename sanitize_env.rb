@@ -123,9 +123,9 @@ module Sanitize
       end
     end
 
-    class ForteC < Base
+    class SunStudio < Base
       def setenv_linux(os)
-	$stderr.puts 'No available profile for Forte C on linux'
+	$stderr.puts 'No available profile for Sun Studio on linux'
       end
 
       def setenv_solaris(os)
@@ -215,7 +215,7 @@ opt_parser = OptionParser.new do | opts |
     options[:apath] << path
   end
 
-  opts.on('-p', '--profile=val', [:ghc, :fortec], 'Load a package profile') do | profile |
+  opts.on('-p', '--profile=val', [:ghc, :sunstudio], 'Load a package profile') do | profile |
     options[:profile] ||= Array.new
     options[:profile] << profile
   end
@@ -266,7 +266,7 @@ if ! options[:profile].nil? && options[:profile].length > 0
   options[:profile].each do | profile |
     new_env.system.profiles << case profile
       when :ghc then Sanitize::Profile::Ghc.new
-      when :fortec then Sanitize::Profile::ForteC.new
+      when :sunstudio then Sanitize::Profile::SunStudio.new
     end
   end
 end
@@ -298,7 +298,7 @@ new_env.shell = case ENV['SHELL']
   else Sanitize::Shell::Base.new
 end
 
-# Spawn shell in child instance
+# Spawn shell in child instance and wait for it in the parent
 pid = Process.fork
 
 if pid.nil?
@@ -308,5 +308,4 @@ else
   Process.waitpid(pid, 0)
   puts 'Exiting sanitized environment.'
 end
-
 
