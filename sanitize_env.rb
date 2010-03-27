@@ -157,7 +157,7 @@ module Sanitize
     class Zsh < Base
       def run
 	puts "Entering shell \"#{ENV['SHELL']}\" with sanitized environment."
-	exec "#{ENV['SHELL']} -f"
+	exec "#{ENV['SHELL']} +f"
       end
     end
   end
