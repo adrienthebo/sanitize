@@ -97,7 +97,7 @@ module Sanitize
       def initialize
 	super
 	@path << [ '/usr/sbin', '/usr/bin', '/sbin', '/bin' ]
-	@cppflags '-I/usr/include'
+	@cppflags << '-I/usr/include'
 	@ldflags << '-R/usr/lib'
       end
 
