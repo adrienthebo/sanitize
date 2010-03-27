@@ -1,0 +1,28 @@
+.TH sanitize-env 1
+.SH NAME
+sanitize-env \- sanitize environment values for build environments.
+.SH SYNOPSIS
+.B sanitize-env [-s|--system systemname] [-p|--profile profilename] 
+[--prepend-path path] [--append-path path] [-h|--help]
+.SH DESCRIPTION
+.B sanitize-env
+is a simple script to sanitize your environment for building and running 
+software. It provides sane defaults for various environment settings, such
+as PATH, CPPFLAGS, LDFLAGS, and the like.
+.SH OPTIONS
+.TP
+.I -s | --system
+Specify the system/platform. This argument is required. Available parameters:
+[linux|solaris]
+.TP
+.I -p | --profile
+Loads a program specific profile into the system. Can be specified more 
+than once. 
+Available parameters: [ghc|sunstudio|gcc3|gcc4]. Not all profiles
+are available on both linux and solaris.
+.SH SEE ALSO
+If you have any specific questions, reading the source might help. It's just 
+ruby, it won't bite.
+.SH AUTHOR
+Adrien Thebo
+.B <finch@cat.pdx.edu>

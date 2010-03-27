@@ -1,8 +1,10 @@
 TODO
 
-- Add support for SunswPro/Forte C - should be done
+- Add support for SunswPro/Forte C done
 - Autodetect operating system
     - check OSTYPE variable and act accordingly
 - Manpath sanitization
     - linux: check 'manpath'
     - solaris: ...?
+- CPPFLAGS and LDFLAGS
+    - Partially done
