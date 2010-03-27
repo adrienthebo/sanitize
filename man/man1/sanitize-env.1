@@ -1,8 +1,9 @@
-.TH sanitize-env 1
+.TH sanitize-env 1 "March 27 2010"
 .SH NAME
 sanitize-env \- sanitize environment values for build environments.
 .SH SYNOPSIS
-.B sanitize-env [-s|--system systemname] [-p|--profile profilename] 
+.B sanitize-env 
+[-s|--system systemname] [-p|--profile profilename] 
 [--prepend-path path] [--append-path path] [-h|--help]
 .SH DESCRIPTION
 .B sanitize-env
@@ -11,15 +12,25 @@ software. It provides sane defaults for various environment settings, such
 as PATH, CPPFLAGS, LDFLAGS, and the like.
 .SH OPTIONS
 .TP
-.I -s | --system
+.I -s | --system systemname
 Specify the system/platform. This argument is required. Available parameters:
 [linux|solaris]
 .TP
-.I -p | --profile
+.I -p | --profile profilename
 Loads a program specific profile into the system. Can be specified more 
 than once. 
+.br
+.br
 Available parameters: [ghc|sunstudio|gcc3|gcc4]. Not all profiles
 are available on both linux and solaris.
+.TP
+.I --prepend-path path
+Prepends a path to the PATH variable. Use this only if you know what you're
+doing.
+.TP
+.I --append-path path
+Appends a path to the PATH variable. Use this only if you know what you're
+doing.
 .SH SEE ALSO
 If you have any specific questions, reading the source might help. It's just 
 ruby, it won't bite.
