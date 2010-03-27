@@ -1,11 +1,11 @@
 #!/usr/bin/env ruby
 ################################################################################
-# sanitize.rb
+# sanitize-env
 ################################################################################
 # 
 # Author: Adrien Thebo
 #
-# sanitize is a ruby script for setting up an environment with standardized 
+# sanitize-env is a ruby script for setting up an environment with standardized 
 # values.
 #
 ################################################################################
@@ -62,12 +62,6 @@ module Sanitize
 	self.setpath
 	self.setflags
 	ENV.delete 'LD_LIBRARY_PATH'
-      end
-
-      def unset
-	ENV.each_key do | k |
-	  ENV.delete k
-	end
       end
     end
     
@@ -148,7 +142,21 @@ module Sanitize
       def setenv_solaris(os)
 	os.path.unshift('/opt/SUNWspro/bin')
 	os.ldflags << ['-R/usr/lib', '-R/opt/SUNWspro/lib', '-R/usr/sfw/lib' ]
-	os.cppflags << [ '-I/usr/include', '-I/opt/SUWNspro/include', '-I/usr/sfw/include' ]
+	os.cppflags << ['-I/usr/include', '-I/opt/SUWNspro/include', '-I/usr/sfw/include']
+      end
+    end
+
+    class Gcc3 < Base
+      def setenv_solaris(os)
+	os.cppflags << ['-I/opt/csw/include', '-I/opt/csw/gcc3/include', '-I/usr/include']
+	os.ldflags << ['-R/opt/csw/lib', '-R/opt/csw/gcc3/lib', '-R/usr/lib']
+      end
+    end
+
+    class Gcc4 < Base
+      def setenv_solaris(os)
+	os.cppflags << ['-I/opt/csw/include', '-I/opt/csw/gcc4/include', '-I/usr/include']
+	os.ldflags << ['-R/opt/csw/lib', '-R/opt/csw/gcc4/lib', '-R/usr/lib']
       end
     end
   end
@@ -233,10 +241,12 @@ opt_parser = OptionParser.new do | opts |
     options[:apath] << path
   end
 
-  opts.on('-p', '--profile=val', [:ghc, :sunstudio], 'Load a package profile') do | profile |
+  opts.on('-p', '--profile=val', [:ghc, :sunstudio, :gcc3, :gcc4], 'Load a package profile') do | profile |
     options[:profile] ||= Array.new
     options[:profile] << profile
   end
+  opts.separator('                                     Available profiles:')
+  opts.separator('                                     [ghc|sunstudio|gcc3|gcc4]')
 
   opts.on('-h', '--help', 'Display this help screen') do
     puts opts
@@ -277,6 +287,8 @@ if ! options[:profile].nil? && options[:profile].length > 0
     new_env.system.profiles << case profile
       when :ghc then Sanitize::Profile::Ghc.new
       when :sunstudio then Sanitize::Profile::SunStudio.new
+      when :gcc3 then Sanitize::Profile::Gcc3.new
+      when :gcc4 then Sanitize::Profile::Gcc4.new
     end
   end
 end
