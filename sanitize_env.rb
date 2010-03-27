@@ -31,9 +31,14 @@ module Sanitize
   module OperatingSystem
     class Base
       attr_accessor :path
+      attr_accessor :cppflags
+      attr_accessor :ldflags
       attr_accessor :profiles
+
       def initialize
 	@path = Array.new
+	@cppflags = Array.new
+	@ldflags = Array.new
 	@profiles = Array.new
       end
 
@@ -43,9 +48,19 @@ module Sanitize
 	end
       end
 
+      def setflags
+	if @cppflags.length > 0
+	  ENV['CPPFLAGS'] = @cppflags.join(' ')
+	end
+	if @ldflags.length > 0
+	  ENV['LDFLAGS'] = @ldflags.join(' ')
+	end
+      end
+
       # Basic setenv method. 
       def setenv
 	self.setpath
+	self.setflags
 	ENV.delete 'LD_LIBRARY_PATH'
       end
 
@@ -81,7 +96,9 @@ module Sanitize
     class Linux < Base
       def initialize
 	super
-	@path << [ "/usr/sbin", "/usr/bin", "/sbin", "/bin" ]
+	@path << [ '/usr/sbin', '/usr/bin', '/sbin', '/bin' ]
+	@cppflags '-I/usr/include'
+	@ldflags << '-R/usr/lib'
       end
 
       def setenv
@@ -130,6 +147,8 @@ module Sanitize
 
       def setenv_solaris(os)
 	os.path.unshift('/opt/SUNWspro/bin')
+	os.ldflags << ['-R/usr/lib', '-R/opt/SUNWspro/lib', '-R/usr/sfw/lib' ]
+	os.cppflags << [ '-I/usr/include', '-I/opt/SUWNspro/include', '-I/usr/sfw/include' ]
       end
     end
   end
@@ -190,7 +209,6 @@ end
 require 'optparse'
 
 # Make sure sanitizing hasn't occurred.
-
 if ENV['SANITIZED'].to_i == 1
   $stderr.puts "Already in a sanitized environment. Exiting."
   exit 1
@@ -253,10 +271,7 @@ new_env.system = case options[:system]
     end
 end
 
-################################################################################
 # Load profiles
-################################################################################
-
 if ! options[:profile].nil? && options[:profile].length > 0
   options[:profile].each do | profile |
     new_env.system.profiles << case profile
@@ -266,10 +281,7 @@ if ! options[:profile].nil? && options[:profile].length > 0
   end
 end
 
-################################################################################
 # Path munging
-################################################################################
-
 if ! options[:ppath].nil? && options[:ppath].length > 0
   new_env.system.path.unshift options[:ppath]
 end
@@ -278,10 +290,7 @@ if ! options[:apath].nil? && options[:apath].length > 0
   new_env.system.path.push options[:apath]
 end
 
-################################################################################
 # Determine shell type
-################################################################################
-
 new_env.shell = case ENV['SHELL']
   when '/bin/bash' then Sanitize::Shell::Bash.new
   when '/bin/zsh' then Sanitize::Shell::Zsh.new
