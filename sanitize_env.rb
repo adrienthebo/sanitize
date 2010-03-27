@@ -220,11 +220,6 @@ opt_parser = OptionParser.new do | opts |
     options[:profile] << profile
   end
 
-  opts.on('--shell=val', 'Specify a shell to load') do | shell |
-    $stderr.puts "--shell switch not available at this time."
-    options[:shell] = shell
-  end
-
   opts.on('-h', '--help', 'Display this help screen') do
     puts opts
     exit
@@ -286,11 +281,6 @@ end
 ################################################################################
 # Determine shell type
 ################################################################################
-
-#new_env.shell = case options[:shell]
-#  when 'bash' then Sanitize::Shell::Bash.new
-#  when 'zsh' then Sanitize::Shell::Zsh.new
-#end
 
 new_env.shell = case ENV['SHELL']
   when '/bin/bash' then Sanitize::Shell::Bash.new
