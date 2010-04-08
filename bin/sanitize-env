@@ -9,7 +9,7 @@
 # values.
 #
 ################################################################################
-
+$VERSION = 1.0
 ################################################################################
 # module Sanitize
 ################################################################################
@@ -247,6 +247,11 @@ opt_parser = OptionParser.new do | opts |
   end
   opts.separator('                                     Available profiles:')
   opts.separator('                                     [ghc|sunstudio|gcc3|gcc4]')
+
+  opts.on('-v', '--version', 'Display the version') do
+    puts "sanitize-env v#{$VERSION}"
+    exit 0
+  end
 
   opts.on('-h', '--help', 'Display this help screen') do
     puts opts
