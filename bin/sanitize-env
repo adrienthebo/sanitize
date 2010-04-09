@@ -72,7 +72,7 @@ module Sanitize
 
       def initialize
 	super
-	@path << [ "/opt/csw/gcc4/bin", "/opt/csw/bin", "/bin", "/usr/bin" ]
+	@path << [ "/opt/csw/bin", "/bin", "/usr/bin" ]
       end
 
       def setenv
@@ -155,10 +155,18 @@ module Sanitize
 
     class Gcc4 < Base
       def setenv_solaris(os)
+	os.path << [ "/opt/csw/gcc4/bin" ]
 	os.cppflags << ['-I/opt/csw/include', '-I/opt/csw/gcc4/include', '-I/usr/include']
 	os.ldflags << ['-R/opt/csw/lib', '-R/opt/csw/gcc4/lib', '-R/usr/lib']
       end
     end
+
+    class SunDev < Base
+      def setenv_solaris(os)
+	os.path << [ "/usr/ccs/bin" ]
+      end
+    end
+
   end
 
   ##############################################################################
@@ -241,7 +249,7 @@ opt_parser = OptionParser.new do | opts |
     options[:apath] << path
   end
 
-  opts.on('-p', '--profile=val', [:ghc, :sunstudio, :gcc3, :gcc4], 'Load a package profile') do | profile |
+  opts.on('-p', '--profile=val', [:ghc, :sunstudio, :gcc3, :gcc4, :sundev], 'Load a package profile') do | profile |
     options[:profile] ||= Array.new
     options[:profile] << profile
   end
@@ -294,6 +302,7 @@ if ! options[:profile].nil? && options[:profile].length > 0
       when :sunstudio then Sanitize::Profile::SunStudio.new
       when :gcc3 then Sanitize::Profile::Gcc3.new
       when :gcc4 then Sanitize::Profile::Gcc4.new
+      when :sundev then Sanitize::Profile::SunDev.new
     end
   end
 end
